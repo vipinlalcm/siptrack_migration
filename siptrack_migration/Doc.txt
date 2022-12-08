@@ -1,0 +1,34 @@
+Collecting the details from siptrack and adding to local database to start the migration to password state
+=========
+
+1) First call : http://localhost:8080/siptrack/fetchpasswords
+Which will fetch all passwords directly from siptrack database and add it in local database table called "password_idmap" (PasswordIdmap)
+
+2) Then call: http://localhost:8080/siptrack/dataadd
+Which will fetch the password ids and add its parent details in to the password_parent table. (PasswordParentDetails)
+
+3) Then call : http://localhost:8080/siptrack/addtree
+Which will take the password parent oids from the password_parent table and add the tree structure details in the idmap (Idmap) and parent_details (ParentDetails)
+table (in local database)
+
+
+
+
+From the collected data from siptrack, we migrate the tree structure and devices and passwords in to password state.
+======
+
+1) post a call: http://localhost:8080/passwordstate/migrate
+Which will create the necessary tree structure in passwordstate in oder to add password list and passwords.
+
+
+
+2) post call : http://localhost:8080/passwordstate/api/passwordlists/create
+Which will create neccessary password list under the trees and also add that qeualent id in localdb
+
+3) post call: http://localhost:8080/passwordstate/api/passwordlists/addpassword
+Which will fetch the passwords and create it in password state.
+
+4) post call: http://localhost:8080/passwordstate/api/passwordlists/addpasspermission
+Which will fetch the passwords and its password key id from password_idmap table and assign proper permissions in passwordstate based on the hardcoded values.
+
+ select * from parent_details where st_oid_id IN (select st_oid from password_parent where st_oid IN (select distinct st_parent_oid from password_idmap where ps_oid is null) and st_status = 0 and st_class_id IN ('D', 'DC', 'PC'));
